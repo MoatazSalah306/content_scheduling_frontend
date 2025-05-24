@@ -40,50 +40,40 @@ export const getPlatforms = async () => {
 };
 
 // Update platform settings
-export const updatePlatformSettings = async (platformSettings) => {
-  // TODO: Replace with actual API call to your Laravel backend
-  // Example: PUT /api/user/platform-settings with { platform_id: enabled, ... }
-  
-  console.log('Updating platform settings:', platformSettings);
-  
-  // Mock delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Update mock data
-  platformSettings.forEach(setting => {
-    const platform = mockPlatforms.find(p => p.key === setting.key);
-    if (platform) {
-      platform.enabled = setting.enabled;
-    }
-  });
-  
-  return { success: true, platforms: mockPlatforms };
-  
-  /*
-  // Example of actual API integration:
+export const updatePlatformSettings = async (platformId) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/user/platform-settings', {
-      method: 'PUT',
+    const response = await fetch(`${API_BASE}/platforms/toggle`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
       },
-      body: JSON.stringify({ settings: platformSettings })
+      body: JSON.stringify({
+        platform_id: platformId
+      })
     });
     
     const data = await response.json();
     
     if (response.ok) {
-      return { success: true, platforms: data.platforms };
+      return { 
+        success: true, 
+        message: data.message || 'Platform status updated successfully' 
+      };
     } else {
-      return { success: false, error: data.message };
+      return { 
+        success: false, 
+        error: data.message || 'Failed to update platform status' 
+      };
     }
   } catch (error) {
-    return { success: false, error: 'Network error' };
+    return { 
+      success: false, 
+      error: 'Network error while updating platform status' 
+    };
   }
-  */
 };
 
 // Get enabled platforms for dropdown/selection
