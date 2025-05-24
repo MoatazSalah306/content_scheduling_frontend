@@ -80,9 +80,6 @@ const Login = ({ setUser, showAlert }) => {
 
       <div className="text-center mt-20">
         <p>Don't have an account? <Link to="/register">Register here</Link></p>
-        <p style={{ fontSize: '14px', color: '#666', marginTop: '20px' }}>
-          Demo credentials: john@example.com / password
-        </p>
       </div>
     </div>
   );

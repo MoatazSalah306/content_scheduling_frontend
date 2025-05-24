@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getPosts } from '../services/postService';
-import { getPlatforms } from '../services/platformService';
+import { getEnabledPlatforms, getPlatforms } from '../services/platformService';
 
 const Dashboard = ({ showAlert }) => {
   const [posts, setPosts] = useState([]);
   const [platforms, setPlatforms] = useState([]);
+  const [enabledPlatforms, setEnabledPlatforms] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('list'); // 'list' or 'calendar'
   const [filters, setFilters] = useState({
@@ -21,9 +22,10 @@ const Dashboard = ({ showAlert }) => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [postsResult, platformsResult] = await Promise.all([
+      const [postsResult, platformsResult,enabledPlatformsResult] = await Promise.all([
         getPosts(filters),
-        getPlatforms()
+        getPlatforms(),
+        getEnabledPlatforms()
       ]);
 
       if (postsResult.success) {
@@ -36,6 +38,13 @@ const Dashboard = ({ showAlert }) => {
         setPlatforms(platformsResult.platforms);
       } else {
         showAlert('error', 'Failed to load platforms');
+      }
+
+        if (enabledPlatformsResult.success) {
+        setEnabledPlatforms(enabledPlatformsResult.platforms);
+      } else {
+        showAlert('error', 'Failed to load enabled platforms');
+        
       }
     } catch (error) {
       showAlert('error', 'Error loading dashboard data');
@@ -161,39 +170,44 @@ const Dashboard = ({ showAlert }) => {
           </div>
 
           {/* Platforms Section */}
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">Platform Status</h3>
-            </div>
-            
-            <div>
-              {platforms.map(platform => (
-                <div key={platform.id} className="platform-toggle">
-                  <div>
-                    <strong>{platform.name}</strong>
-                    <div style={{ fontSize: '12px', color: '#666' }}>
-                      Status: {platform.enabled ? 'Enabled' : 'Disabled'}
-                    </div>
-                  </div>
-                  <div style={{
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    backgroundColor: platform.enabled ? '#28a745' : '#dc3545',
-                    color: 'white'
-                  }}>
-                    {platform.enabled ? 'Active' : 'Inactive'}
+           <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Platform Status</h3>
+        </div>
+        
+        <div>
+          {platforms.map(platform => {
+            // Check if platform is in enabledPlatforms by id
+            const isActive = enabledPlatforms.some(ep => ep.id === platform.id);
+
+            return (
+              <div key={platform.id} className="platform-toggle" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
+                <div>
+                  <strong>{platform.name}</strong>
+                  <div style={{ fontSize: '12px', color: '#666' }}>
+                    Status: {isActive ? 'Enabled' : 'Disabled'}
                   </div>
                 </div>
-              ))}
-              
-              <div style={{ marginTop: '15px' }}>
-                <Link to="/settings" className="btn btn-secondary">
-                  Manage Platforms
-                </Link>
+                <div style={{
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  backgroundColor: isActive ? '#28a745' : '#dc3545',
+                  color: 'white'
+                }}>
+                  {isActive ? 'Active' : 'Inactive'}
+                </div>
               </div>
-            </div>
+            );
+          })}
+          
+          <div style={{ marginTop: '15px' }}>
+            <Link to="/settings" className="btn btn-secondary">
+              Manage Platforms
+            </Link>
           </div>
+        </div>
+      </div>
         </div>
       )}
     </div>

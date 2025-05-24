@@ -1,4 +1,4 @@
-
+const API_BASE = 'http://127.0.0.1:8000/api';
 // Platform Service
 // This file contains mock functions for platform management
 // Replace the mock data and logic with actual API calls to your Laravel backend
@@ -14,39 +14,29 @@ let mockPlatforms = [
 
 // Get all platforms
 export const getPlatforms = async () => {
-  // TODO: Replace with actual API call to your Laravel backend
-  // Example: GET /api/platforms
-  
-  console.log('Fetching platforms');
-  
-  // Mock delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  return { success: true, platforms: mockPlatforms };
-  
-  /*
-  // Example of actual API integration:
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/platforms', {
+
+    const response = await fetch(`${API_BASE}/platforms`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
       }
     });
-    
+
     const data = await response.json();
-    
+
     if (response.ok) {
-      return { success: true, platforms: data.platforms };
+      console.log(data);
+      
+      return { success: true, platforms: data.data }; // `data` from $this->success()
     } else {
       return { success: false, error: data.message };
     }
   } catch (error) {
     return { success: false, error: 'Network error' };
   }
-  */
 };
 
 // Update platform settings
@@ -98,10 +88,26 @@ export const updatePlatformSettings = async (platformSettings) => {
 
 // Get enabled platforms for dropdown/selection
 export const getEnabledPlatforms = async () => {
-  const result = await getPlatforms();
-  if (result.success) {
-    const enabledPlatforms = result.platforms.filter(p => p.enabled);
-    return { success: true, platforms: enabledPlatforms };
+  try {
+    const token = localStorage.getItem('token'); // or wherever you store your auth token
+
+    const response = await fetch(`${API_BASE}/platforms/getActive`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      }
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, platforms: data.data }; // assuming your success method wraps data in "data" key
+    } else {
+      return { success: false, error: data.message || 'Failed to load enabled platforms' };
+    }
+  } catch (error) {
+    return { success: false, error: 'Network error' };
   }
-  return result;
 };
+
