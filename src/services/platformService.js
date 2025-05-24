@@ -1,16 +1,5 @@
 const API_BASE = 'http://127.0.0.1:8000/api';
-// Platform Service
-// This file contains mock functions for platform management
-// Replace the mock data and logic with actual API calls to your Laravel backend
 
-// Mock platforms data
-let mockPlatforms = [
-  { id: 1, name: 'Facebook', key: 'facebook', enabled: true },
-  { id: 2, name: 'Twitter', key: 'twitter', enabled: true },
-  { id: 3, name: 'Instagram', key: 'instagram', enabled: false },
-  { id: 4, name: 'LinkedIn', key: 'linkedin', enabled: true },
-  { id: 5, name: 'TikTok', key: 'tiktok', enabled: false }
-];
 
 // Get all platforms
 export const getPlatforms = async () => {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { updateProfile } from '../services/userService';
 
@@ -6,18 +5,25 @@ const Profile = ({ user, setUser, showAlert }) => {
   const [formData, setFormData] = useState({
     name: user.name || '',
     email: user.email || '',
+    current_password: '',
     password: '',
-    passwordConfirmation: ''
+    password_confirmation: ''
   });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // If password is provided, check confirmation
-    if (formData.password && formData.password !== formData.passwordConfirmation) {
-      showAlert('error', 'Passwords do not match');
-      return;
+    // If password is provided, check confirmation and current password
+    if (formData.password) {
+      if (formData.password !== formData.password_confirmation) {
+        showAlert('error', 'Passwords do not match');
+        return;
+      }
+      if (!formData.current_password) {
+        showAlert('error', 'Current password is required to change password');
+        return;
+      }
     }
 
     setLoading(true);
@@ -28,9 +34,12 @@ const Profile = ({ user, setUser, showAlert }) => {
         email: formData.email
       };
 
-      // Only include password if provided
+      // Only include passwords if new password is provided
       if (formData.password) {
+         updateData.current_password = formData.current_password;
         updateData.password = formData.password;
+        updateData.password_confirmation = formData.password_confirmation;
+    
       }
 
       const result = await updateProfile(updateData);
@@ -41,11 +50,14 @@ const Profile = ({ user, setUser, showAlert }) => {
         // Clear password fields
         setFormData({
           ...formData,
+          current_password: '',
           password: '',
-          passwordConfirmation: ''
+          password_confirmation: ''
         });
       } else {
-        showAlert('error', result.error || 'Update failed');
+        console.log(result.errors);
+        
+        showAlert('error', result.errors.current_password || 'Update failed');
       }
     } catch (error) {
       showAlert('error', 'An error occurred during update');
@@ -98,6 +110,18 @@ const Profile = ({ user, setUser, showAlert }) => {
           </div>
 
           <div className="form-group">
+            <label htmlFor="current_password">Current Password (required for password change)</label>
+            <input
+              type="password"
+              id="current_password"
+              name="current_password"
+              value={formData.current_password}
+              onChange={handleChange}
+              placeholder="Enter your current password"
+            />
+          </div>
+
+          <div className="form-group">
             <label htmlFor="password">New Password (optional)</label>
             <input
               type="password"
@@ -110,12 +134,12 @@ const Profile = ({ user, setUser, showAlert }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="passwordConfirmation">Confirm New Password</label>
+            <label htmlFor="password_confirmation">Confirm New Password</label>
             <input
               type="password"
-              id="passwordConfirmation"
-              name="passwordConfirmation"
-              value={formData.passwordConfirmation}
+              id="password_confirmation"
+              name="password_confirmation"
+              value={formData.password_confirmation}
               onChange={handleChange}
               placeholder="Confirm new password"
             />

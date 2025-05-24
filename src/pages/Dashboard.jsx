@@ -29,6 +29,9 @@ const Dashboard = ({ showAlert }) => {
       ]);
 
       if (postsResult.success) {
+        
+        console.log(postsResult.posts);
+        
         setPosts(postsResult.posts);
       } else {
         showAlert('error', 'Failed to load posts');
@@ -76,14 +79,14 @@ const Dashboard = ({ showAlert }) => {
       {/* View Toggle */}
       <div className="mb-20">
         <button
-          className={`btn ${view === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+          className={`btn ${view === 'list' ? 'btn-primary' : 'btn-secondary' }`}
           onClick={() => setView('list')}
           style={{ marginRight: '10px' }}
         >
           List View
         </button>
         <button
-          className={`btn ${view === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
+          className={`btn ${view === 'calendar' ? 'btn-primary' : 'btn-secondary' }`}
           onClick={() => setView('calendar')}
         >
           Calendar View
@@ -146,10 +149,10 @@ const Dashboard = ({ showAlert }) => {
                       {getStatusBadge(post.status)}
                     </div>
                     <p style={{ color: '#666', margin: '5px 0' }}>
-                      {post.content.substring(0, 100)}...
+                      {post.content}
                     </p>
                     <p style={{ fontSize: '12px', color: '#666' }}>
-                      Platforms: {post.platforms.join(', ')}
+                      Platforms : {post.platforms?.map(p => p.type).join(', ') || 'None'}
                     </p>
                     <p style={{ fontSize: '12px', color: '#666' }}>
                       Scheduled: {formatDate(post.scheduled_at)}

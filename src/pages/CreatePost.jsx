@@ -1,36 +1,33 @@
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createPost } from '../services/postService';
-import { getEnabledPlatforms } from '../services/platformService';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { createPost } from "../services/postService";
+import { getEnabledPlatforms } from "../services/platformService";
 
 const CreatePost = ({ showAlert }) => {
   const navigate = useNavigate();
   const [platforms, setPlatforms] = useState([]);
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
+    title: "",
+    content: "",
     image: null,
     platforms: [],
-    scheduled_at: ''
+    scheduled_at: "",
+    status: "scheduled",
   });
   const [loading, setLoading] = useState(false);
   const [characterCount, setCharacterCount] = useState(0);
 
   useEffect(() => {
     loadPlatforms();
+
     // Set default datetime to 1 hour from now
     const defaultDate = new Date();
     defaultDate.setHours(defaultDate.getHours() + 1);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      scheduled_at: defaultDate.toISOString().slice(0, 16)
+      scheduled_at: defaultDate.toISOString().slice(0, 16),
     }));
   }, []);
-
-  useEffect(() => {
-    setCharacterCount(formData.content.length);
-  }, [formData.content]);
 
   const loadPlatforms = async () => {
     try {
@@ -38,74 +35,92 @@ const CreatePost = ({ showAlert }) => {
       if (result.success) {
         setPlatforms(result.platforms);
       } else {
-        showAlert('error', 'Failed to load platforms');
+        showAlert("error", result.error || "Failed to load platforms");
       }
     } catch (error) {
-      showAlert('error', 'Error loading platforms');
+      showAlert("error", "Error loading platforms");
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.platforms.length === 0) {
-      showAlert('error', 'Please select at least one platform');
+      showAlert("error", "Please select at least one platform");
+      return;
+    }
+
+    if (formData.status === "scheduled" && !formData.scheduled_at) {
+      showAlert("error", "Scheduled date is required");
       return;
     }
 
     setLoading(true);
 
     try {
-      const result = await createPost(formData);
-      
+      const result = await createPost({
+        ...formData,
+        platforms: formData.platforms
+          .map((platformtype) => {
+            const platform = platforms.find((p) => p.type === platformtype);
+            return platform ? platform.id : null;
+          })
+          .filter(Boolean),
+      });
+
       if (result.success) {
-        showAlert('success', 'Post created successfully!');
-        navigate('/dashboard');
+        showAlert("success", "Post created successfully!");
+        navigate("/dashboard");
       } else {
-        showAlert('error', result.error || 'Failed to create post');
+        showAlert("error", result.error || "Failed to create post");
       }
     } catch (error) {
-      showAlert('error', 'Error creating post');
+      showAlert("error", error.message || "Error creating post");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
-    
-    if (type === 'file') {
+
+    if (type === "file") {
       setFormData({
         ...formData,
-        [name]: files[0]
+        [name]: files[0],
       });
     } else {
-      setFormData({
-        ...formData,
-        [name]: value
+      setFormData((prev) => {
+        if (name === "content") {
+          setCharacterCount(value.length);
+        }
+        return {
+          ...prev,
+          [name]: value,
+        };
       });
     }
   };
 
-  const handlePlatformChange = (platformKey) => {
-    setFormData(prev => ({
+  const handlePlatformChange = (platformtype) => {
+    setFormData((prev) => ({
       ...prev,
-      platforms: prev.platforms.includes(platformKey)
-        ? prev.platforms.filter(p => p !== platformKey)
-        : [...prev.platforms, platformKey]
+      platforms: prev.platforms.includes(platformtype)
+        ? prev.platforms.filter((p) => p !== platformtype)
+        : [...prev.platforms, platformtype],
     }));
   };
 
   const getCharacterCountClass = () => {
-    if (characterCount > 280) return 'char-counter danger';
-    if (characterCount > 200) return 'char-counter warning';
-    return 'char-counter';
+    if (characterCount > 280) return "char-counter danger";
+    if (characterCount > 200) return "char-counter warning";
+    return "char-counter";
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ maxWidth: "800px", margin: "0 auto" }}>
       <h1 className="mb-20">Create New Post</h1>
-      
+
       <div className="card">
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -147,7 +162,9 @@ const CreatePost = ({ showAlert }) => {
               accept="image/*"
             />
             {formData.image && (
-              <div style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
+              <div
+                style={{ marginTop: "10px", fontSize: "14px", color: "#666" }}
+              >
                 Selected: {formData.image.name}
               </div>
             )}
@@ -156,17 +173,31 @@ const CreatePost = ({ showAlert }) => {
           <div className="form-group">
             <label>Platforms</label>
             {platforms.length === 0 ? (
-              <p style={{ color: '#666' }}>
-                No platforms enabled. <a href="/settings">Enable platforms in settings</a>
+              <p style={{ color: "#666" }}>
+                No platforms enabled.{" "}
+                <a href="/settings">Enable platforms in settings</a>
               </p>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
-                {platforms.map(platform => (
-                  <label key={platform.key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                  gap: "10px",
+                }}
+              >
+                {platforms.map((platform) => (
+                  <label
+                    type={platform.type}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
                     <input
                       type="checkbox"
-                      checked={formData.platforms.includes(platform.key)}
-                      onChange={() => handlePlatformChange(platform.key)}
+                      checked={formData.platforms.includes(platform.type)}
+                      onChange={() => handlePlatformChange(platform.type)}
                     />
                     {platform.name}
                   </label>
@@ -176,48 +207,52 @@ const CreatePost = ({ showAlert }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="scheduled_at">Schedule Date & Time</label>
-            <input
-              type="datetime-local"
-              id="scheduled_at"
-              name="scheduled_at"
-              value={formData.scheduled_at}
+            <label htmlFor="status">Status</label>
+            <select
+              id="status"
+              name="status"
+              value={formData.status}
               onChange={handleChange}
               required
-            />
+            >
+              <option value="scheduled">Scheduled</option>
+              <option value="draft">Draft</option>
+            </select>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-            <button 
+          {formData.status === "scheduled" && (
+            <div className="form-group">
+              <label htmlFor="scheduled_at">Schedule Date & Time</label>
+              <input
+                type="datetime-local"
+                id="scheduled_at"
+                name="scheduled_at"
+                value={formData.scheduled_at}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          )}
+
+          <div
+            style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}
+          >
+            <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate("/dashboard")}
               className="btn btn-secondary"
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary"
               disabled={loading}
             >
-              {loading ? 'Creating...' : 'Create Post'}
+              {loading ? "Creating..." : "Create Post"}
             </button>
           </div>
         </form>
-      </div>
-
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">Tips</h3>
-        </div>
-        <div style={{ fontSize: '14px', color: '#666' }}>
-          <ul style={{ paddingLeft: '20px' }}>
-            <li>Keep your content under 280 characters for Twitter compatibility</li>
-            <li>Images will be automatically resized for each platform</li>
-            <li>Posts are saved as drafts until their scheduled time</li>
-            <li>You can edit scheduled posts before they are published</li>
-          </ul>
-        </div>
       </div>
     </div>
   );
