@@ -1,39 +1,16 @@
 
 // Authentication Service
-// This file contains mock functions for authentication
-// Replace the mock data and logic with actual API calls to your Laravel backend
+// Integrated with Laravel Sanctum backend
 
-// Mock user data - replace with actual user from API
-const mockUser = {
-  id: 1,
-  name: 'John Doe',
-  email: 'john@example.com'
-};
+// Base API URL - Update this to match your Laravel backend URL
+const API_BASE_URL = 'http://localhost:8000/api'; // Change to your Laravel backend URL
 
 // Login function
 export const login = async (email, password) => {
-  // TODO: Replace with actual API call to your Laravel backend
-  // Example: POST /api/login with { email, password }
-  
   console.log('Login attempt:', { email, password });
   
-  // Mock delay to simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Mock validation
-  if (email === 'john@example.com' && password === 'password') {
-    // TODO: Store the actual token from Laravel Sanctum
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    localStorage.setItem('token', 'mock-token-123'); // Replace with actual token
-    return { success: true, user: mockUser };
-  } else {
-    return { success: false, error: 'Invalid credentials' };
-  }
-  
-  /*
-  // Example of actual API integration:
   try {
-    const response = await fetch('/api/login', {
+    const response = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,42 +22,25 @@ export const login = async (email, password) => {
     const data = await response.json();
     
     if (response.ok) {
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('token', data.token);
-      return { success: true, user: data.user };
+      // Store user and token from Laravel response
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+      localStorage.setItem('token', data.data.token);
+      return { success: true, user: data.data.user };
     } else {
-      return { success: false, error: data.message };
+      return { success: false, error: data.message || 'Login failed' };
     }
   } catch (error) {
+    console.error('Login error:', error);
     return { success: false, error: 'Network error' };
   }
-  */
 };
 
 // Register function
 export const register = async (name, email, password, passwordConfirmation) => {
-  // TODO: Replace with actual API call to your Laravel backend
-  // Example: POST /api/register with { name, email, password, password_confirmation }
-  
   console.log('Register attempt:', { name, email, password, passwordConfirmation });
   
-  // Mock delay to simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Mock validation
-  if (password === passwordConfirmation && email && name) {
-    const newUser = { id: 2, name, email };
-    localStorage.setItem('user', JSON.stringify(newUser));
-    localStorage.setItem('token', 'mock-token-456'); // Replace with actual token
-    return { success: true, user: newUser };
-  } else {
-    return { success: false, error: 'Registration failed' };
-  }
-  
-  /*
-  // Example of actual API integration:
   try {
-    const response = await fetch('/api/register', {
+    const response = await fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -97,46 +57,44 @@ export const register = async (name, email, password, passwordConfirmation) => {
     const data = await response.json();
     
     if (response.ok) {
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('token', data.token);
-      return { success: true, user: data.user };
+      // Store user and token from Laravel response
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+      localStorage.setItem('token', data.data.token);
+      return { success: true, user: data.data.user };
     } else {
-      return { success: false, error: data.message };
+      return { success: false, error: data.message || 'Registration failed' };
     }
   } catch (error) {
+    console.error('Registration error:', error);
     return { success: false, error: 'Network error' };
   }
-  */
 };
 
 // Logout function
 export const logout = async () => {
-  // TODO: Add API call to invalidate token on backend
-  // Example: POST /api/logout with Authorization header
-  
-  /*
-  // Example of actual API integration:
   try {
     const token = localStorage.getItem('token');
-    await fetch('/api/logout', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      }
-    });
+    
+    if (token) {
+      await fetch(`${API_BASE_URL}/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        }
+      });
+    }
   } catch (error) {
     console.error('Logout error:', error);
   }
-  */
   
+  // Always clear local storage regardless of API response
   localStorage.removeItem('user');
   localStorage.removeItem('token');
 };
 
 // Get current user
 export const getCurrentUser = () => {
-  // TODO: Optionally verify token with backend
   const user = localStorage.getItem('user');
   return user ? JSON.parse(user) : null;
 };
