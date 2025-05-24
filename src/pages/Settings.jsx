@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { getPlatforms, updatePlatformSettings } from '../services/platformService';
+import { getPlatforms, updatePlatformSettings, getEnabledPlatforms } from '../services/platformService';
+import { Switch } from '../components/ui/switch';
+import { Label } from '../components/ui/label';
 
 const Settings = ({ showAlert }) => {
   const [platforms, setPlatforms] = useState([]);
@@ -13,9 +15,22 @@ const Settings = ({ showAlert }) => {
 
   const loadPlatforms = async () => {
     try {
-      const result = await getPlatforms();
-      if (result.success) {
-        setPlatforms(result.platforms);
+      const [platformsResult, enabledResult] = await Promise.all([
+        getPlatforms(),
+        getEnabledPlatforms()
+      ]);
+      
+      if (platformsResult.success && enabledResult.success) {
+        // Create a map of enabled platform keys for quick lookup
+        const enabledKeys = new Set(enabledResult.platforms.map(p => p.key));
+        
+        // Set enabled status based on getEnabledPlatforms result
+        const platformsWithStatus = platformsResult.platforms.map(platform => ({
+          ...platform,
+          enabled: enabledKeys.has(platform.key)
+        }));
+        
+        setPlatforms(platformsWithStatus);
       } else {
         showAlert('error', 'Failed to load platforms');
       }
@@ -25,11 +40,11 @@ const Settings = ({ showAlert }) => {
     setLoading(false);
   };
 
-  const handleTogglePlatform = (platformKey) => {
+  const handleTogglePlatform = (platformKey, newChecked) => {
     setPlatforms(prev => 
       prev.map(platform => 
         platform.key === platformKey 
-          ? { ...platform, enabled: !platform.enabled }
+          ? { ...platform, enabled: newChecked }
           : platform
       )
     );
@@ -77,20 +92,23 @@ const Settings = ({ showAlert }) => {
         
         <div>
           {platforms.map(platform => (
-            <div key={platform.id} className="platform-toggle">
-              <div>
-                <strong>{platform.name}</strong>
-                <div style={{ fontSize: '12px', color: '#666' }}>
-                  {platform.enabled ? 'Posts will be published to this platform' : 'This platform is disabled'}
-                </div>
+            <div key={platform.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg mb-3">
+              <div className="flex items-center space-x-3">
+                <Label htmlFor={`platform-${platform.key}`} className="cursor-pointer">
+                  <div>
+                    <strong>{platform.name}</strong>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
+                      {platform.enabled ? 'Posts will be published to this platform' : 'This platform is disabled'}
+                    </div>
+                  </div>
+                </Label>
               </div>
               
-              <div 
-                className={`toggle-switch ${platform.enabled ? 'active' : ''}`}
-                onClick={() => handleTogglePlatform(platform.key)}
-              >
-                <div className="toggle-slider"></div>
-              </div>
+              <Switch
+                id={`platform-${platform.key}`}
+                checked={platform.enabled}
+                onCheckedChange={(checked) => handleTogglePlatform(platform.key, checked)}
+              />
             </div>
           ))}
           
