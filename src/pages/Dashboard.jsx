@@ -17,9 +17,20 @@ import {
   PencilSquareIcon,
   Cog6ToothIcon,
   SignalIcon,
-  SignalSlashIcon
+  SignalSlashIcon,
+  ChartBarIcon,
+  EyeIcon,
+  ShareIcon,
+  BoltIcon,
+  ExclamationTriangleIcon,
+  RocketLaunchIcon
 } from '@heroicons/react/24/outline';
-import { format, isSameDay, parseISO } from 'date-fns';
+import { 
+  CheckCircleIcon as CheckCircleIconSolid,
+  ClockIcon as ClockIconSolid,
+  DocumentTextIcon as DocumentTextIconSolid
+} from '@heroicons/react/24/solid';
+import { format, isSameDay, parseISO, startOfDay } from 'date-fns';
 
 const Dashboard = ({ showAlert }) => {
   const [posts, setPosts] = useState([]);
@@ -75,17 +86,32 @@ const Dashboard = ({ showAlert }) => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      draft: { color: 'bg-gray-100 text-gray-800', icon: PencilSquareIcon, label: 'Draft' },
-      scheduled: { color: 'bg-blue-100 text-blue-800', icon: ClockIcon, label: 'Scheduled' },
-      published: { color: 'bg-green-100 text-green-800', icon: CheckCircleIcon, label: 'Published' }
+      draft: { 
+        color: 'bg-amber-100 text-amber-800 border-amber-200', 
+        icon: PencilSquareIcon, 
+        label: 'Draft',
+        iconSolid: DocumentTextIconSolid
+      },
+      scheduled: { 
+        color: 'bg-blue-100 text-blue-800 border-blue-200', 
+        icon: ClockIcon, 
+        label: 'Scheduled',
+        iconSolid: ClockIconSolid
+      },
+      published: { 
+        color: 'bg-emerald-100 text-emerald-800 border-emerald-200', 
+        icon: CheckCircleIcon, 
+        label: 'Published',
+        iconSolid: CheckCircleIconSolid
+      }
     };
     
     const config = statusConfig[status] || statusConfig.draft;
-    const IconComponent = config.icon;
+    const IconComponent = config.iconSolid;
     
     return (
-      <Badge className={`${config.color} flex items-center gap-1`}>
-        <IconComponent className="w-3 h-3" />
+      <Badge className={`${config.color} border flex items-center gap-1.5 px-2.5 py-1`}>
+        <IconComponent className="w-3.5 h-3.5" />
         {config.label}
       </Badge>
     );
@@ -101,7 +127,7 @@ const Dashboard = ({ showAlert }) => {
   const getDateWithPosts = () => {
     const datesWithPosts = posts
       .filter(post => post.status === 'scheduled')
-      .map(post => parseISO(post.scheduled_at));
+      .map(post => startOfDay(parseISO(post.scheduled_at)));
     return datesWithPosts;
   };
 
@@ -109,288 +135,343 @@ const Dashboard = ({ showAlert }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-3 border-blue-600 mx-auto mb-6"></div>
+          <p className="text-slate-600 text-lg font-medium">Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Manage your social media posts and platforms</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="container mx-auto px-6 py-8 space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              Dashboard
+            </h1>
+            <p className="text-slate-600 text-lg">Manage your social media presence with ease</p>
+          </div>
+          <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200">
+            <Link to="/create-post" className="gap-2">
+              <PlusIcon className="w-5 h-5" />
+              Create New Post
+            </Link>
+          </Button>
         </div>
-        <Button asChild className="gap-2">
-          <Link to="/create-post">
-            <PlusIcon className="w-4 h-4" />
-            Create New Post
-          </Link>
-        </Button>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <DocumentTextIcon className="w-8 h-8 text-blue-500 mr-4" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Posts</p>
-              <p className="text-2xl font-bold">{posts.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <ClockIcon className="w-8 h-8 text-orange-500 mr-4" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Scheduled</p>
-              <p className="text-2xl font-bold">{posts.filter(p => p.status === 'scheduled').length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <SignalIcon className="w-8 h-8 text-green-500 mr-4" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Active Platforms</p>
-              <p className="text-2xl font-bold">{enabledPlatforms.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-slate-600">Total Posts</p>
+                  <p className="text-3xl font-bold text-slate-900">{posts.length}</p>
+                  <p className="text-xs text-slate-500">All your content</p>
+                </div>
+                <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <DocumentTextIconSolid className="w-8 h-8 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Main Content */}
-      <Tabs defaultValue="list" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-          <TabsTrigger value="list" className="gap-2">
-            <DocumentTextIcon className="w-4 h-4" />
-            List View
-          </TabsTrigger>
-          <TabsTrigger value="calendar" className="gap-2">
-            <CalendarDaysIcon className="w-4 h-4" />
-            Calendar View
-          </TabsTrigger>
-        </TabsList>
+          <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-slate-600">Scheduled</p>
+                  <p className="text-3xl font-bold text-slate-900">{posts.filter(p => p.status === 'scheduled').length}</p>
+                  <p className="text-xs text-slate-500">Ready to publish</p>
+                </div>
+                <div className="h-16 w-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <ClockIconSolid className="w-8 h-8 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <TabsContent value="list" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Posts Section */}
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DocumentTextIcon className="w-5 h-5" />
-                    Recent Posts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Filters */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <select
-                      value={filters.status}
-                      onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                      className="px-3 py-2 border border-input rounded-md bg-background"
-                    >
-                      <option value="">All Status</option>
-                      <option value="draft">Draft</option>
-                      <option value="scheduled">Scheduled</option>
-                      <option value="published">Published</option>
-                    </select>
+          <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-slate-600">Active Platforms</p>
+                  <p className="text-3xl font-bold text-slate-900">{enabledPlatforms.length}</p>
+                  <p className="text-xs text-slate-500">Connected accounts</p>
+                </div>
+                <div className="h-16 w-16 bg-gradient-to-br from-emerald-500 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <RocketLaunchIcon className="w-8 h-8 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-                    <input
-                      type="date"
-                      value={filters.date}
-                      onChange={(e) => setFilters({ ...filters, date: e.target.value })}
-                      className="px-3 py-2 border border-input rounded-md bg-background"
-                    />
+        {/* Main Content */}
+        <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-lg">
+          <CardContent className="p-0">
+            <Tabs defaultValue="list" className="w-full">
+              <div className="px-6 pt-6 pb-0">
+                <TabsList className="grid w-full grid-cols-2 lg:w-[400px] bg-slate-100/80 p-1">
+                  <TabsTrigger value="list" className="gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                    <DocumentTextIcon className="w-4 h-4" />
+                    List View
+                  </TabsTrigger>
+                  <TabsTrigger value="calendar" className="gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                    <CalendarDaysIcon className="w-4 h-4" />
+                    Calendar View
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="list" className="p-6 space-y-6">
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                  {/* Posts Section */}
+                  <div className="xl:col-span-3">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 mb-6">
+                        <ChartBarIcon className="w-6 h-6 text-blue-600" />
+                        <h2 className="text-xl font-semibold text-slate-900">Recent Posts</h2>
+                      </div>
+
+                      {/* Filters */}
+                      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                        <select
+                          value={filters.status}
+                          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                          className="px-4 py-2.5 border border-slate-200 rounded-lg bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        >
+                          <option value="">All Status</option>
+                          <option value="draft">Draft</option>
+                          <option value="scheduled">Scheduled</option>
+                          <option value="published">Published</option>
+                        </select>
+
+                        <input
+                          type="date"
+                          value={filters.date}
+                          onChange={(e) => setFilters({ ...filters, date: e.target.value })}
+                          className="px-4 py-2.5 border border-slate-200 rounded-lg bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+
+                      {/* Posts List */}
+                      {posts.length === 0 ? (
+                        <div className="text-center py-16">
+                          <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <DocumentTextIcon className="w-10 h-10 text-slate-400" />
+                          </div>
+                          <h3 className="text-xl font-semibold text-slate-900 mb-2">No posts yet</h3>
+                          <p className="text-slate-600 mb-6">Create your first post to get started with social media management.</p>
+                          <Button asChild variant="outline" size="lg" className="gap-2">
+                            <Link to="/create-post">
+                              <PlusIcon className="w-4 h-4" />
+                              Create your first post
+                            </Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {posts.map(post => (
+                            <Card key={post.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+                              <CardContent className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                  <h4 className="font-semibold text-lg text-slate-900 line-clamp-1">{post.title}</h4>
+                                  {getStatusBadge(post.status)}
+                                </div>
+                                <p className="text-slate-600 text-sm mb-4 line-clamp-2">
+                                  {post.content}
+                                </p>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                  {post.platforms?.map(p => (
+                                    <Badge key={p.type} variant="secondary" className="text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">
+                                      {p.type}
+                                    </Badge>
+                                  )) || <Badge variant="outline" className="text-xs">No platforms</Badge>}
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                                    <ClockIcon className="w-4 h-4" />
+                                    Scheduled: {formatDate(post.scheduled_at)}
+                                  </div>
+                                  <Button asChild size="sm" variant="outline" className="gap-1.5">
+                                    <Link to={`/edit-post/${post.id}`}>
+                                      <PencilSquareIcon className="w-4 h-4" />
+                                      Edit
+                                    </Link>
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Posts List */}
-                  {posts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <DocumentTextIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground mb-4">No posts found.</p>
-                      <Button asChild variant="outline">
-                        <Link to="/create-post">Create your first post</Link>
+                  {/* Platforms Section */}
+                  <div className="xl:col-span-1">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 mb-6">
+                        <Cog6ToothIcon className="w-6 h-6 text-emerald-600" />
+                        <h2 className="text-xl font-semibold text-slate-900">Platforms</h2>
+                      </div>
+
+                      <div className="space-y-3">
+                        {platforms.map(platform => {
+                          const isActive = enabledPlatforms.some(ep => ep.id === platform.id);
+                          return (
+                            <Card key={platform.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all duration-200">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                      isActive 
+                                        ? 'bg-gradient-to-br from-emerald-500 to-green-500' 
+                                        : 'bg-gradient-to-br from-slate-200 to-slate-300'
+                                    }`}>
+                                      {isActive ? (
+                                        <SignalIcon className="w-5 h-5 text-white" />
+                                      ) : (
+                                        <SignalSlashIcon className="w-5 h-5 text-slate-500" />
+                                      )}
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-slate-900">{platform.name}</p>
+                                      <p className="text-xs text-slate-500">
+                                        {isActive ? 'Connected & Active' : 'Not Connected'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Badge variant={isActive ? 'default' : 'secondary'} className={
+                                    isActive 
+                                      ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
+                                      : 'bg-slate-100 text-slate-600'
+                                  }>
+                                    {isActive ? 'Active' : 'Inactive'}
+                                  </Badge>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                      
+                      <Button asChild variant="outline" className="w-full mt-6 gap-2">
+                        <Link to="/settings">
+                          <Cog6ToothIcon className="w-4 h-4" />
+                          Manage Platforms
+                        </Link>
                       </Button>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {posts.map(post => (
-                        <Card key={post.id} className="p-4">
-                          <div className="flex justify-between items-start mb-3">
-                            <h4 className="font-semibold text-lg">{post.title}</h4>
-                            {getStatusBadge(post.status)}
-                          </div>
-                          <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-                            {post.content}
-                          </p>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {post.platforms?.map(p => (
-                              <Badge key={p.type} variant="secondary" className="text-xs">
-                                {p.type}
-                              </Badge>
-                            )) || <Badge variant="outline" className="text-xs">No platforms</Badge>}
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-xs text-muted-foreground">
-                              Scheduled: {formatDate(post.scheduled_at)}
-                            </p>
-                            <Button asChild size="sm" variant="outline">
-                              <Link to={`/edit-post/${post.id}`}>
-                                <PencilSquareIcon className="w-4 h-4 mr-1" />
-                                Edit
-                              </Link>
-                            </Button>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                  </div>
+                </div>
+              </TabsContent>
 
-            {/* Platforms Section */}
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Cog6ToothIcon className="w-5 h-5" />
-                    Platform Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {platforms.map(platform => {
-                    const isActive = enabledPlatforms.some(ep => ep.id === platform.id);
-                    return (
-                      <div key={platform.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          {isActive ? (
-                            <SignalIcon className="w-5 h-5 text-green-500" />
-                          ) : (
-                            <SignalSlashIcon className="w-5 h-5 text-gray-400" />
-                          )}
-                          <div>
-                            <p className="font-medium">{platform.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {isActive ? 'Connected' : 'Disconnected'}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant={isActive ? 'default' : 'secondary'}>
-                          {isActive ? 'Active' : 'Inactive'}
-                        </Badge>
+              <TabsContent value="calendar" className="p-6 space-y-6">
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                  {/* Calendar */}
+                  <div className="xl:col-span-3">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 mb-6">
+                        <CalendarDaysIcon className="w-6 h-6 text-purple-600" />
+                        <h2 className="text-xl font-semibold text-slate-900">Scheduled Posts Calendar</h2>
                       </div>
-                    );
-                  })}
-                  
-                  <Button asChild variant="outline" className="w-full mt-4">
-                    <Link to="/settings">
-                      <Cog6ToothIcon className="w-4 h-4 mr-2" />
-                      Manage Platforms
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="calendar" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Calendar */}
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CalendarDaysIcon className="w-5 h-5" />
-                    Scheduled Posts Calendar
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    className="rounded-md border w-full"
-                    modifiers={{
-                      hasPost: getDateWithPosts()
-                    }}
-                    modifiersStyles={{
-                      hasPost: { 
-                        backgroundColor: 'hsl(var(--primary))', 
-                        color: 'hsl(var(--primary-foreground))',
-                        fontWeight: 'bold'
-                      }
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Selected Date Posts */}
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {format(selectedDate, 'MMM dd, yyyy')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {selectedDatePosts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <CalendarDaysIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">No posts scheduled for this date</p>
+                      
+                      <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md">
+                        <CardContent className="p-6">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            className="rounded-lg border-0 w-full"
+                            modifiers={{
+                              hasPost: getDateWithPosts()
+                            }}
+                            modifiersStyles={{
+                              hasPost: { 
+                                backgroundColor: 'rgb(99 102 241)', 
+                                color: 'white',
+                                fontWeight: 'bold',
+                                borderRadius: '6px'
+                              }
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {selectedDatePosts.map(post => (
-                        <Card key={post.id} className="p-3">
-                          <div className="flex justify-between items-start mb-2">
-                            <h5 className="font-medium text-sm">{post.title}</h5>
-                            <Badge variant="secondary" className="text-xs">
-                              {format(parseISO(post.scheduled_at), 'HH:mm')}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                            {post.content}
-                          </p>
-                          <div className="flex justify-between items-center">
-                            <div className="flex gap-1">
-                              {post.platforms?.slice(0, 2).map(p => (
-                                <Badge key={p.type} variant="outline" className="text-xs">
-                                  {p.type}
-                                </Badge>
-                              ))}
-                              {post.platforms?.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{post.platforms.length - 2}
-                                </Badge>
-                              )}
+                  </div>
+
+                  {/* Selected Date Posts */}
+                  <div className="xl:col-span-1">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 mb-6">
+                        <EyeIcon className="w-6 h-6 text-indigo-600" />
+                        <h2 className="text-lg font-semibold text-slate-900">
+                          {format(selectedDate, 'MMM dd, yyyy')}
+                        </h2>
+                      </div>
+
+                      {selectedDatePosts.length === 0 ? (
+                        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md">
+                          <CardContent className="p-6 text-center">
+                            <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <CalendarDaysIcon className="w-8 h-8 text-slate-400" />
                             </div>
-                            <Button asChild size="sm" variant="ghost">
-                              <Link to={`/edit-post/${post.id}`}>
-                                <PencilSquareIcon className="w-3 h-3" />
-                              </Link>
-                            </Button>
-                          </div>
+                            <h3 className="font-medium text-slate-900 mb-2">No posts scheduled</h3>
+                            <p className="text-sm text-slate-600">No posts are scheduled for this date.</p>
+                          </CardContent>
                         </Card>
-                      ))}
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedDatePosts.map(post => (
+                            <Card key={post.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all duration-200">
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start mb-3">
+                                  <h5 className="font-medium text-sm text-slate-900 line-clamp-2">{post.title}</h5>
+                                  <Badge variant="secondary" className="text-xs bg-indigo-100 text-indigo-800 ml-2 shrink-0">
+                                    {format(parseISO(post.scheduled_at), 'HH:mm')}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-slate-600 mb-3 line-clamp-2">
+                                  {post.content}
+                                </p>
+                                <div className="flex justify-between items-center">
+                                  <div className="flex gap-1 flex-wrap">
+                                    {post.platforms?.slice(0, 2).map(p => (
+                                      <Badge key={p.type} variant="outline" className="text-xs">
+                                        {p.type}
+                                      </Badge>
+                                    ))}
+                                    {post.platforms?.length > 2 && (
+                                      <Badge variant="outline" className="text-xs">
+                                        +{post.platforms.length - 2}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <Button asChild size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                    <Link to={`/edit-post/${post.id}`}>
+                                      <PencilSquareIcon className="w-4 h-4" />
+                                    </Link>
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
