@@ -13,8 +13,9 @@ This is the **frontend** application for the **Content Scheduler** system. It pr
 - Responsive UI design for desktop and mobile devices
 - Rate limiting feedback on post creation and platform toggling
 
-## Demo
+## Demo Video
 
+https://drive.google.com/drive/folders/18bb3tUk052JysHTgGR7CVIZwX6fLWT_c?usp=drive_link
 _____
 
 ## Installation & Setup
@@ -23,3 +24,5 @@ _____
 ```bash
 git clone https://github.com/MoatazSalah306/content-scheduler-frontend.git
 cd content-scheduler-frontend
+npm i
+npm run dev
