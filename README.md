@@ -1,4 +1,4 @@
-# Content Scheduler – Frontend
+# Content Scheduler 
 
 This is the **frontend** application for the **Content Scheduler** system. It provides a user-friendly interface for scheduling, managing, and publishing social media posts across multiple platforms by interacting with the backend API.
 
