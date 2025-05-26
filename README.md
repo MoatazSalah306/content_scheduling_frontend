@@ -21,5 +21,5 @@ _Optionally add a link to a live demo here if available_
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/content-scheduler-frontend.git
+git clone https://github.com/MoatazSalah306/content-scheduler-frontend.git
 cd content-scheduler-frontend
