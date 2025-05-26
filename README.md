@@ -15,7 +15,7 @@ This is the **frontend** application for the **Content Scheduler** system. It pr
 
 ## Demo
 
-_Optionally add a link to a live demo here if available_
+_____
 
 ## Installation & Setup
 
