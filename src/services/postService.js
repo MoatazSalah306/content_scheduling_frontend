@@ -47,9 +47,8 @@ export const createPost = async (postData) => {
     formData.append('status', postData.status); 
     
     // Format scheduled time correctly
-    if (postData.scheduled_at) {
-      const scheduledDate = new Date(postData.scheduled_at);
-      formData.append('scheduled_time', scheduledDate.toISOString());
+  if (postData.scheduled_at) {
+      formData.append('scheduled_time', `${postData.scheduled_at}:00`);
     }
     
     // Append platforms as IDs (not keys)
@@ -153,6 +152,7 @@ export const updatePost = async (id, postData) => {
     
     // Laravel method spoofing for PUT
     postData.append('_method', 'PUT');
+    
     
     const response = await fetch(`${API_BASE}/posts/${id}`, {
       method: 'POST', // Using POST with _method=PUT

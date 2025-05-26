@@ -11,7 +11,7 @@ const CreatePost = ({ showAlert }) => {
     content: "",
     image: null,
     platforms: [],
-    scheduled_at: "",
+    scheduled_at: null,
     status: "scheduled",
   });
   const [loading, setLoading] = useState(false);
@@ -92,7 +92,7 @@ const CreatePost = ({ showAlert }) => {
         ...formData,
         [name]: file,
       });
-      
+
       if (file) {
         const reader = new FileReader();
         reader.onload = (e) => setImagePreview(e.target.result);
@@ -102,13 +102,22 @@ const CreatePost = ({ showAlert }) => {
       }
     } else {
       setFormData((prev) => {
-        if (name === "content") {
-          setCharacterCount(value.length);
-        }
-        return {
+        const updatedData = {
           ...prev,
           [name]: value,
         };
+
+        // Update character count for content field
+        if (name === "content") {
+          setCharacterCount(value.length);
+        }
+
+        // Set scheduled_at to null if status is not "scheduled"
+        if (name === "status" && value !== "scheduled") {
+          updatedData.scheduled_at = null;
+        }
+
+        return updatedData;
       });
     }
   };

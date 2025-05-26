@@ -36,7 +36,7 @@ const Dashboard = ({ showAlert }) => {
       if (postsResult.success) {
         setPosts(postsResult.posts);
       } else {
-        showAlert("error", "Failed to load posts");
+        showAlert("error", postsResult.error || "Failed to load posts");
       }
 
       if (platformsResult.success) {
@@ -62,12 +62,15 @@ const Dashboard = ({ showAlert }) => {
   };
 
   const getPostsForDate = (date) => {
-    const dateString = date.toISOString().split('T')[0];
-    return posts.filter(post => 
-      post.status === "scheduled" && 
-      post.scheduled_at && 
-      new Date(post.scheduled_at).toISOString().split('T')[0] === dateString
-    );
+    return posts.filter(post => {
+      if (post.status !== "scheduled" || !post.scheduled_at) return false;
+      const postDate = new Date(post.scheduled_at);
+      return (
+        postDate.getFullYear() === date.getFullYear() &&
+        postDate.getMonth() === date.getMonth() &&
+        postDate.getDate() === date.getDate()
+      );
+    });
   };
 
   const tileContent = ({ date, view }) => {
@@ -81,7 +84,7 @@ const Dashboard = ({ showAlert }) => {
                 key={post.id} 
                 className="calendar-post-indicator"
                 style={{
-                  backgroundColor: '#4f46e5',
+                  backgroundColor: '#238DFF',
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
@@ -93,9 +96,9 @@ const Dashboard = ({ showAlert }) => {
               <div 
                 className="calendar-post-more"
                 style={{
-                  color: '#4f46e5',
+                  color: '#238DFF',
                   fontSize: '10px',
-                  fontWeight: 'bold',
+                  fontWeight: '600',
                   marginTop: '2px'
                 }}
               >
@@ -112,12 +115,13 @@ const Dashboard = ({ showAlert }) => {
   const tileClassName = ({ date, view }) => {
     if (view === 'month') {
       const today = new Date();
+      const classes = [];
       if (
         date.getDate() === today.getDate() &&
         date.getMonth() === today.getMonth() &&
         date.getFullYear() === today.getFullYear()
       ) {
-        return 'highlight-today';
+        classes.push('highlight-today');
       }
       
       if (
@@ -126,13 +130,14 @@ const Dashboard = ({ showAlert }) => {
         date.getMonth() === calendarDate.getMonth() &&
         date.getFullYear() === calendarDate.getFullYear()
       ) {
-        return 'highlight-selected';
+        classes.push('highlight-selected');
       }
       
       const dayPosts = getPostsForDate(date);
       if (dayPosts.length > 0) {
-        return 'has-posts';
+        classes.push('has-posts');
       }
+      return classes.length > 0 ? classes.join(' ') : null;
     }
     return null;
   };
@@ -143,14 +148,14 @@ const Dashboard = ({ showAlert }) => {
 
   return (
     <div>
-      <div className="flex-between mb-20">
+      <div className="flex-between mb-10">
         <h1>Dashboard</h1>
         <Link to="/create-post" className="btn btn-primary">
           <i className="bi bi-plus-lg me-2"></i>Create New Post
         </Link>
       </div>
 
-      <div className="mb-20">
+      <div className="mb-10">
         <button
           className={`btn ${view === "list" ? "btn-primary" : "btn-secondary"}`}
           onClick={() => setView("list")}
@@ -169,11 +174,13 @@ const Dashboard = ({ showAlert }) => {
       {view === "calendar" && (
         <div className="calendar-view mb-20">
           <div style={{
-            backgroundColor: 'white',
-            borderRadius: '16px',
-            padding: '24px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-            border: '1px solid rgba(0, 0, 0, 0.05)'
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '20px',
+            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+            border: '1px solid #e5e7eb',
+            maxWidth: '400px',
+            margin: '0 auto'
           }}>
             <Calendar
               onChange={setCalendarDate}
@@ -181,14 +188,15 @@ const Dashboard = ({ showAlert }) => {
               tileContent={tileContent}
               tileClassName={tileClassName}
               className="modern-calendar"
-              navigationLabel={({ date, label, locale, view }) => (
+              navigationLabel={({ date, label }) => (
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
                   fontWeight: '600',
-                  color: '#111827'
+                  color: '#1f2937',
+                  fontSize: '16px'
                 }}>
                   <span>{label}</span>
                 </div>
@@ -200,17 +208,17 @@ const Dashboard = ({ showAlert }) => {
           </div>
 
           <div className="calendar-posts-list mt-6" style={{
-            marginTop:6,
-            backgroundColor: 'white',
-            borderRadius: '16px',
-            padding: '24px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-            border: '1px solid rgba(0, 0, 0, 0.05)'
+            marginTop: 6,
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '20px',
+            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+            border: '1px solid #e5e7eb'
           }}>
             <h3 style={{
               fontSize: '20px',
               fontWeight: '600',
-              color: '#111827',
+              color: '#1f2937',
               marginBottom: '20px',
               display: 'flex',
               alignItems: 'center',
@@ -237,13 +245,13 @@ const Dashboard = ({ showAlert }) => {
                   width: '60px',
                   height: '60px',
                   borderRadius: '50%',
-                  backgroundColor: '#f3f4f6',
+                  backgroundColor: '#f3f4fd',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '16px'
                 }}>
-                  <i className="bi bi-calendar" style={{ fontSize: '24px', color: '#9ca3af' }}></i>
+                  <i className="bi bi-calendar" style={{ color: '#6b7280', fontSize: '24px' }}></i>
                 </div>
                 <p style={{ 
                   color: '#6b7280', 
@@ -269,37 +277,37 @@ const Dashboard = ({ showAlert }) => {
                   <div
                     key={post.id}
                     style={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "12px",
-                      padding: "20px",
-                      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.06)',
                       transition: 'all 0.2s ease'
                     }}
-                  >
+                    >
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <h4 style={{ 
                         margin: 0,
                         fontSize: '16px',
                         fontWeight: '600',
-                        color: '#111827'
+                        color: '#1f2937'
                       }}>{post.title}</h4>
                       <span style={{
-                        padding: "4px 10px",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                        backgroundColor: "#C0E1FF",
-                        color: "#007BFF",
-                        textTransform: "uppercase"
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        backgroundColor: '#dbeafe',
+                        color: '#238DFF',
+                        textTransform: 'uppercase'
                       }}>
                         Scheduled
                       </span>
                     </div>
                     
                     <p style={{ 
-                      color: "#6b7280", 
-                      margin: "8px 0 12px",
+                      color: '#6b7280', 
+                      margin: '8px 0 12px',
                       fontSize: '14px'
                     }}>{post.content.substring(0, 120)}{post.content.length > 120 ? '...' : ''}</p>
                     
@@ -311,8 +319,8 @@ const Dashboard = ({ showAlert }) => {
                     }}>
                       <i className="bi bi-clock" style={{ color: '#6b7280', fontSize: '14px' }}></i>
                       <span style={{
-                        fontSize: "13px",
-                        color: "#6b7280"
+                        fontSize: '13px',
+                        color: '#6b7280'
                       }}>
                         {formatDate(post.scheduled_at)}
                       </span>
@@ -326,16 +334,16 @@ const Dashboard = ({ showAlert }) => {
                     }}>
                       <i className="bi bi-share" style={{ color: '#6b7280', fontSize: '14px' }}></i>
                       <span style={{
-                        fontSize: "13px",
-                        color: "#6b7280"
+                        fontSize: '13px',
+                        color: '#6b7280'
                       }}>
-                        {post.platforms?.map(p => p.type).join(", ") || "No platforms"}
+                        {post.platforms?.map(p => p.type).join(', ') || 'No platforms'}
                       </span>
                     </div>
                     
                     <div style={{ 
-                      display: "flex", 
-                      gap: "10px",
+                      display: 'flex', 
+                      gap: '10px',
                       borderTop: '1px solid #f3f4f6',
                       paddingTop: '16px',
                       marginTop: '8px'
@@ -343,13 +351,13 @@ const Dashboard = ({ showAlert }) => {
                       <Link 
                         to={`/edit-post/${post.id}`} 
                         style={{
-                          padding: "8px 14px",
-                          backgroundColor: "#E9F4F3",
-                          color: "#0072FF",
-                          border: "none",
-                          borderRadius: "8px",
-                          fontSize: "13px",
-                          fontWeight: "500",
+                          padding: '8px 14px',
+                          backgroundColor: '#f3f4f6',
+                          color: '#238DFF',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: '500',
                           textDecoration: 'none',
                           display: 'flex',
                           alignItems: 'center',
@@ -357,10 +365,10 @@ const Dashboard = ({ showAlert }) => {
                           transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#BCE7FF";
+                          e.currentTarget.style.backgroundColor = '#dbeafe';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#f3f4f6";
+                          e.currentTarget.style.backgroundColor = '#f3f4f6';
                         }}
                       >
                         <i className="bi bi-pencil" style={{ fontSize: '12px' }}></i>
@@ -369,13 +377,13 @@ const Dashboard = ({ showAlert }) => {
                       <Link 
                         to={`/post/${post.id}`} 
                         style={{
-                          padding: "8px 14px",
-                          backgroundColor: "#007BFF",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "8px",
-                          fontSize: "13px",
-                          fontWeight: "500",
+                          padding: '8px 14px',
+                          backgroundColor: '#238DFF',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: '500',
                           textDecoration: 'none',
                           display: 'flex',
                           alignItems: 'center',
@@ -383,10 +391,10 @@ const Dashboard = ({ showAlert }) => {
                           transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#0064FF";
+                          e.currentTarget.style.backgroundColor = '#1e7ae6';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#008AFF";
+                          e.currentTarget.style.backgroundColor = '#238DFF';
                         }}
                       >
                         <i className="bi bi-eye" style={{ fontSize: '12px' }}></i>
@@ -403,15 +411,12 @@ const Dashboard = ({ showAlert }) => {
 
       {view === "list" && (
         <div className="grid grid-2">
-          <div className="card" style={{ marginBottom: "30px" }}>
+          <div className="card">
             <div className="card-header">
               <h3 className="card-title">Recent Posts</h3>
             </div>
 
-            <div
-              className="mb-20"
-              style={{ display: "flex", gap: "10px", padding: "1rem" }}
-            >
+            <div style={{ display: "flex", gap: "10px", padding: "1rem" }}>
               <select
                 value={filters.status}
                 onChange={(e) =>
@@ -420,7 +425,7 @@ const Dashboard = ({ showAlert }) => {
                 style={{
                   padding: "8px 12px",
                   borderRadius: "6px",
-                  border: "1px solid #ccc",
+                  border: "1px solid #e5e7eb",
                 }}
               >
                 <option value="">All Status</option>
@@ -438,38 +443,42 @@ const Dashboard = ({ showAlert }) => {
                 style={{
                   padding: "8px 12px",
                   borderRadius: "6px",
-                  border: "1px solid #ccc",
+                  border: "1px solid #e5e7eb",
                 }}
               />
             </div>
 
-            <div style={{ padding: "1rem" }}>
+            <div
+              className="scrollable-container"
+              style={{
+                padding: "1rem",
+                maxHeight: "500px",
+                overflowY: "auto",
+              }}
+            >
               {posts.length === 0 ? (
-                <p>
+                <p className="text-center">
                   No posts found.{" "}
-                  <Link to="/create-post" className="btn btn-primary">
-                    <i className="bi bi-plus-lg me-2"></i>Create your first post
-                  </Link>
                 </p>
               ) : (
                 posts.map((post) => {
-                  const isPublished = post.status == "published";
-                  const isDraft = post.status == "draft";
-                  const isScheduled = post.status == "scheduled";
+                  const isPublished = post.status === "published";
+                  const isDraft = post.status === "draft";
+                  const isScheduled = post.status === "scheduled";
 
                   let statusColor, statusText;
 
                   if (isPublished) {
-                    statusColor = "#28a745";
+                    statusColor = "#22c55e";
                     statusText = "Published";
                   } else if (isDraft) {
-                    statusColor = "#ffc107";
+                    statusColor = "#f59e0b";
                     statusText = "Draft";
                   } else if (isScheduled) {
-                    statusColor = "#007BFF";
+                    statusColor = "#238DFF";
                     statusText = "Scheduled";
                   } else {
-                    statusColor = "#6c757d";
+                    statusColor = "#6b7280";
                     statusText = "Unknown";
                   }
 
@@ -502,7 +511,7 @@ const Dashboard = ({ showAlert }) => {
                           alignItems: "center",
                         }}
                       >
-                        <h4 style={{ margin: 0 }}>{post.title}</h4>
+                        <h4 style={{ margin: 0, fontSize: '16px', color: '#1f2937' }}>{post.title}</h4>
                         <span
                           style={{
                             padding: "6px 14px",
@@ -520,17 +529,17 @@ const Dashboard = ({ showAlert }) => {
                         </span>
                       </div>
 
-                      <p style={{ color: "#666", margin: "10px 0 5px" }}>
+                      <p style={{ color: "#6b7280", margin: "10px 0 5px", fontSize: '14px' }}>
                         {post.content}
                       </p>
 
-                      <p style={{ fontSize: "13px", color: "#666" }}>
+                      <p style={{ fontSize: "13px", color: "#6b7280" }}>
                         Platforms:{" "}
                         {post.platforms?.map((p) => p.type).join(", ") ||
                           "None"}
                       </p>
-                      {post.status == "scheduled" && (
-                        <p style={{ fontSize: "13px", color: "#666" }}>
+                      {post.status === "scheduled" && (
+                        <p style={{ fontSize: "13px", color: "#6b7280" }}>
                           {post.scheduled_at
                             ? `Scheduled: ${formatDate(post.scheduled_at)}`
                             : "Not scheduled"}
@@ -547,7 +556,30 @@ const Dashboard = ({ showAlert }) => {
                           to={`/edit-post/${post.id}`}
                           style={{
                             padding: "8px 14px",
-                            backgroundColor: "#6c757d",
+                            backgroundColor: "#f3f4f6",
+                            color: "#238DFF",
+                            border: "none",
+                            borderRadius: "6px",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            transition: "all 0.3s ease",
+                            textDecoration: "none",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#dbeafe";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "#f3f4f6";
+                          }}
+                        >
+                          <i className="bi bi-pencil me-2"></i>Edit
+                        </Link>
+                        <Link
+                          to={`/post/${post.id}`}
+                          style={{
+                            padding: "8px 14px",
+                            backgroundColor: "#238DFF",
                             color: "white",
                             border: "none",
                             borderRadius: "6px",
@@ -558,32 +590,10 @@ const Dashboard = ({ showAlert }) => {
                             textDecoration: "none",
                           }}
                           onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#5a6268";
+                            e.target.style.backgroundColor = "#1e7ae6";
                           }}
                           onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "#6c757d";
-                          }}
-                        >
-                          <i className="bi bi-pencil me-2"></i>Edit
-                        </Link>
-                        <Link
-                          to={`/post/${post.id}`}
-                          style={{
-                            padding: "8px 14px",
-                            backgroundColor: "#007BFF",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            cursor: "pointer",
-                            transition: "all 0.3s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#0069d9";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "#007BFF";
+                            e.target.style.backgroundColor = "#238DFF";
                           }}
                         >
                           <i className="bi bi-eye me-2"></i>View
@@ -596,20 +606,33 @@ const Dashboard = ({ showAlert }) => {
             </div>
           </div>
 
-          <div className="card">
+          <div className="card scrollable-container" style={{ 
+            maxHeight: "600px", 
+            overflowY: "auto", 
+            display: "flex", 
+            flexDirection: "column" 
+          }}>
             <div className="card-header">
               <h3 className="card-title">Platform Status</h3>
             </div>
 
-            <div style={{ padding: "1rem 0" }}>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                }}
-              >
-                {platforms.map((platform) => {
+            <div style={{ 
+              padding: "1rem", 
+              flex: 1, 
+              display: "flex", 
+              flexDirection: "column",
+              gap: "12px"
+            }}>
+              {platforms.length === 0 ? (
+                <p style={{ 
+                  textAlign: "center", 
+                  color: "#6b7280", 
+                  padding: "1rem" 
+                }}>
+                  No platforms found.
+                </p>
+              ) : (
+                platforms.map((platform) => {
                   const isActive = enabledPlatforms.some(
                     (ep) => ep.id === platform.id
                   );
@@ -619,7 +642,7 @@ const Dashboard = ({ showAlert }) => {
                       key={platform.id}
                       style={{
                         backgroundColor: "#ffffff",
-                        border: `2px solid ${isActive ? "#007BFF" : "#e9ecef"}`,
+                        border: `2px solid ${isActive ? "#238DFF" : "#e5e7eb"}`,
                         borderRadius: "12px",
                         padding: "20px",
                         display: "flex",
@@ -630,6 +653,7 @@ const Dashboard = ({ showAlert }) => {
                         cursor: "pointer",
                         position: "relative",
                         overflow: "hidden",
+                        flexShrink: 0,
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.boxShadow =
@@ -651,7 +675,7 @@ const Dashboard = ({ showAlert }) => {
                           height: "100%",
                           background: `linear-gradient(90deg, transparent 0%, ${
                             isActive
-                              ? "rgba(0, 123, 255, 0.03)"
+                              ? "rgba(35, 141, 255, 0.03)"
                               : "rgba(108, 117, 125, 0.03)"
                           } 100%)`,
                           pointerEvents: "none",
@@ -671,7 +695,7 @@ const Dashboard = ({ showAlert }) => {
                             width: "48px",
                             height: "48px",
                             borderRadius: "12px",
-                            backgroundColor: isActive ? "#007BFF" : "#6c757d",
+                            backgroundColor: isActive ? "#238DFF" : "#6b7280",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -680,7 +704,7 @@ const Dashboard = ({ showAlert }) => {
                             fontWeight: "600",
                             boxShadow: `0 4px 12px ${
                               isActive
-                                ? "rgba(0, 123, 255, 0.3)"
+                                ? "rgba(35, 141, 255, 0.3)"
                                 : "rgba(108, 117, 125, 0.3)"
                             }`,
                             transition: "all 0.3s ease",
@@ -695,7 +719,7 @@ const Dashboard = ({ showAlert }) => {
                               margin: 0,
                               fontSize: "18px",
                               fontWeight: "600",
-                              color: "#2d3748",
+                              color: "#1f2937",
                               marginBottom: "4px",
                             }}
                           >
@@ -706,6 +730,7 @@ const Dashboard = ({ showAlert }) => {
                               margin: 0,
                               fontSize: "14px",
                               lineHeight: "1.4",
+                              color: '#6b7280'
                             }}
                           >
                             {platform.type}
@@ -721,15 +746,15 @@ const Dashboard = ({ showAlert }) => {
                             {isActive ? (
                               <CheckCircle
                                 size={14}
-                                style={{ color: "#28a745" }}
+                                style={{ color: "#22c55e" }}
                               />
                             ) : (
-                              <XCircle size={14} style={{ color: "#dc3545" }} />
+                              <XCircle size={14} style={{ color: "#ef4444" }} />
                             )}
                             <span
                               style={{
                                 fontSize: "12px",
-                                color: isActive ? "#28a745" : "#dc3545",
+                                color: isActive ? "#22c55e" : "#ef4444",
                                 fontWeight: "500",
                               }}
                             >
@@ -755,10 +780,10 @@ const Dashboard = ({ showAlert }) => {
                             borderRadius: "20px",
                             fontSize: "12px",
                             fontWeight: "600",
-                            backgroundColor: isActive ? "#d4edda" : "#f8d7da",
-                            color: isActive ? "#155724" : "#721c24",
+                            backgroundColor: isActive ? "#dcfce7" : "#fee2e2",
+                            color: isActive ? "#15803d" : "#b91c1c",
                             border: `1px solid ${
-                              isActive ? "#c3e6cb" : "#f5c6cb"
+                              isActive ? "#bbf7d0" : "#fecaca"
                             }`,
                             textTransform: "uppercase",
                             letterSpacing: "0.5px",
@@ -769,21 +794,22 @@ const Dashboard = ({ showAlert }) => {
                       </div>
                     </div>
                   );
-                })}
-              </div>
+                })
+              )}
 
               <div
                 style={{
                   marginTop: "24px",
                   display: "flex",
                   justifyContent: "center",
+                  paddingBottom: "1rem",
                 }}
               >
                 <Link
                   to="/settings"
                   style={{
                     padding: "12px 24px",
-                    backgroundColor: "#6c757d",
+                    backgroundColor: "#6b7280",
                     color: "white",
                     border: "none",
                     borderRadius: "8px",
@@ -794,22 +820,21 @@ const Dashboard = ({ showAlert }) => {
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    boxShadow: "0 2px 8px rgba(108, 117, 125, 0.2)",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "#5a6268";
+                    e.target.style.backgroundColor = "#4b5563";
                     e.target.style.transform = "translateY(-1px)";
                     e.target.style.boxShadow =
-                      "0 4px 12px rgba(108, 117, 125, 0.3)";
+                      "0 4px 12px rgba(0, 0, 0, 0.2)";
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "#6c757d";
+                    e.target.style.backgroundColor = "#6b7280";
                     e.target.style.transform = "translateY(0)";
                     e.target.style.boxShadow =
-                      "0 2px 8px rgba(108, 117, 125, 0.2)";
+                      "0 2px 8px rgba(0, 0, 0, 0.15)";
                   }}
                 >
-              
                   <Settings size={16} />
                   Manage Platforms
                 </Link>

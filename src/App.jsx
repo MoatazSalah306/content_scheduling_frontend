@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import './App.css';
 
 // Components
-import { AppSidebar } from './components/AppSidebar';
-import { ThemeProvider } from './components/ThemeProvider';
+import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -20,6 +20,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 // Services
 import { getCurrentUser } from './services/authService';
 import PostView from './pages/PostView';
+import Analytics from './pages/Analytics';
+import HeroSection from './pages/HeroSection';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -27,6 +29,7 @@ function App() {
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
 
   useEffect(() => {
+    // Check if user is logged in on app start
     const currentUser = getCurrentUser();
     setUser(currentUser);
     setLoading(false);
@@ -40,16 +43,7 @@ function App() {
   };
 
   if (loading) {
-    return (
-      <ThemeProvider defaultTheme="light" storageKey="content-scheduler-theme">
-        <div className="flex items-center justify-center min-h-screen bg-background">
-          <div className="flex items-center gap-2 text-foreground">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <span>Loading...</span>
-          </div>
-        </div>
-      </ThemeProvider>
-    );
+    return <div className="loading">Loading...</div>;
   }
 
   return (
@@ -80,6 +74,10 @@ function App() {
               element={user ? <Dashboard showAlert={showAlert} /> : <Navigate to="/login" />} 
             />
             <Route 
+              path="/analytics" 
+              element={user ? <Analytics/> : <Navigate to="/login" />} 
+            />
+            <Route 
               path="/profile" 
               element={user ? <Profile user={user} setUser={setUser} showAlert={showAlert} /> : <Navigate to="/login" />} 
             />
@@ -95,13 +93,14 @@ function App() {
               path="/edit-post/:id" 
               element={user ? <EditPost showAlert={showAlert} /> : <Navigate to="/login" />} 
             />
+        
             <Route 
               path="/post/:id" 
               element={user ? <PostView showAlert={showAlert} /> : <Navigate to="/login" />} 
             />
             <Route 
               path="/" 
-              element={<Navigate to={user ? "/dashboard" : "/login"} />} 
+              element={!user ? <HeroSection/> : <Navigate to="/dashboard" />} 
             />
           </Routes>
         </main>

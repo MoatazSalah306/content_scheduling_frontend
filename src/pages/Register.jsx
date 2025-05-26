@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { register } from '../services/authService';
-import { AuthForm } from '../components/AuthForm';
 
 const Register = ({ setUser, showAlert }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    passwordConfirmation: ''
+  });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -34,6 +40,13 @@ const Register = ({ setUser, showAlert }) => {
     }
 
     setLoading(false);
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   return (

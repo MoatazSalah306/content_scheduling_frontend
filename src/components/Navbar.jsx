@@ -203,6 +203,13 @@ const Navbar = ({ user, setUser, showAlert }) => {
               Dashboard
             </Link>
             <Link 
+              to="/analytics" 
+              style={navStyles.navLink}
+              className="nav-link"
+            >
+              Analytics
+            </Link>
+            <Link 
               to="/create-post" 
               style={navStyles.navLink}
               className="nav-link"
