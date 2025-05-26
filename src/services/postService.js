@@ -56,11 +56,12 @@ export const createPost = async (postData) => {
     postData.platforms.forEach(platformId => {
       formData.append('platforms[]', platformId);
     });
-    
+
     // Append image if exists
     if (postData.image) {
       formData.append('image', postData.image);
     }
+    
     
     const response = await fetch(`${API_BASE}/posts`, {
       method: 'POST',
@@ -82,6 +83,14 @@ export const createPost = async (postData) => {
         }
       };
     } else {
+      // Handle validation errors specifically
+      if (response.status === 422 && data.errors) {
+        const errorMessages = Object.values(data.errors).flat();
+        return { 
+          success: false, 
+          error: errorMessages.join(' ') || 'Validation failed' 
+        };
+      }
       return { 
         success: false, 
         error: data.message || 'Failed to create post' 
@@ -112,51 +121,38 @@ export const getPost = async (id) => {
     const data = await response.json();
     
     if (response.ok) {
+      console.log(data);
+      
       return { 
         success: true, 
         post: {
           id: data.data.id,
           title: data.data.title,
           content: data.data.content,
+          created_at: data.data.created_at,
+          updated_at: data.data.updated_at,
           scheduled_at: data.data.scheduled_time,
-          platforms: data.data.platforms.map(p => p.type), // Use platform type
+          platforms: data.data.platforms.map(p => p), // Use platform type
           status: data.data.status,
-          image: data.data.image_url // Use image_url for display
+          image: data.data.image // Use image_url for display
         }
       };
     } else {
+      console.log(data);
+      
       return { success: false, error: data.message };
     }
   } catch (error) {
+     console.log(error);
     return { success: false, error: 'Network error' };
   }
 };
-
 export const updatePost = async (id, postData) => {
   try {
     const token = localStorage.getItem('token');
-    const formData = new FormData();
     
     // Laravel method spoofing for PUT
-    formData.append('_method', 'PUT');
-    formData.append('title', postData.title);
-    formData.append('content', postData.content);
-    
-    // Format scheduled time correctly
-    if (postData.scheduled_at) {
-      const scheduledDate = new Date(postData.scheduled_at);
-      formData.append('scheduled_time', scheduledDate.toISOString());
-    }
-    
-    // Append platforms as types
-    postData.platforms.forEach(platformType => {
-      formData.append('platforms[]', platformType);
-    });
-    
-    // Append new image if provided (and it's a file, not a string URL)
-    if (postData.image && typeof postData.image !== 'string') {
-      formData.append('image', postData.image);
-    }
+    postData.append('_method', 'PUT');
     
     const response = await fetch(`${API_BASE}/posts/${id}`, {
       method: 'POST', // Using POST with _method=PUT
@@ -164,7 +160,7 @@ export const updatePost = async (id, postData) => {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
       },
-      body: formData
+      body: postData
     });
     
     const data = await response.json();
@@ -172,12 +168,83 @@ export const updatePost = async (id, postData) => {
     if (response.ok) {
       return { success: true, post: data.data };
     } else {
-      return { success: false, error: data.message || 'Failed to update post' };
+      // Handle validation errors specifically
+      if (response.status === 422 && data.errors) {
+        const errorMessages = Object.values(data.errors).flat();
+        return { 
+          success: false, 
+          error: errorMessages.join(' ') || 'Validation failed' 
+        };
+      }
+      return { 
+        success: false, 
+        error: data.message || 'Failed to update post' 
+      };
     }
   } catch (error) {
     return { success: false, error: error.message };
   }
 };
+// export const updatePost = async (id, postData) => {
+//   try {
+//     const token = localStorage.getItem('token');
+//     const formData = new FormData();
+    
+//     // Laravel method spoofing for PUT
+//     formData.append('_method', 'PUT');
+//     formData.append('title', postData.title);
+//     formData.append('content', postData.content);
+    
+//     // Format scheduled time correctly
+//     if (postData.scheduled_at) {
+//       const scheduledDate = new Date(postData.scheduled_at);
+//       formData.append('scheduled_time', scheduledDate.toISOString());
+//     }
+    
+//     // Append platforms as types
+//     postData.platforms.forEach(platformType => {
+//       formData.append('platforms[]', platformType);
+//     });
+    
+//     // Append new image if provided (and it's a file, not a string URL)
+//     if (postData.image) {
+//       formData.append('image', postData.image);
+//     }
+
+//         console.log("post data sent fola upd",postData);
+    
+    
+//     const response = await fetch(`${API_BASE}/posts/${id}`, {
+//       method: 'POST', // Using POST with _method=PUT
+//       headers: {
+//         'Authorization': `Bearer ${token}`,
+//         'Accept': 'application/json',
+//       },
+//       body: formData
+//     });
+    
+//     const data = await response.json();
+    
+//     if (response.ok) {
+//       return { success: true, post: data.data };
+//     } else {
+//        // Handle validation errors specifically
+//       if (response.status === 422 && data.errors) {
+//         const errorMessages = Object.values(data.errors).flat();
+//         return { 
+//           success: false, 
+//           error: errorMessages.join(' ') || 'Validation failed' 
+//         };
+//       }
+//       return { 
+//         success: false, 
+//         error: data.message || 'Failed to create post' 
+//       };
+//     }
+//   } catch (error) {
+//     return { success: false, error: error.message };
+//   }
+// };
 
 export const deletePost = async (id) => {
   try {

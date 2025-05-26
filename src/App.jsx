@@ -13,9 +13,13 @@ import Settings from './pages/Settings';
 import CreatePost from './pages/CreatePost';
 import EditPost from './pages/EditPost';
 import AlertMessage from './components/AlertMessage';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
 
 // Services
 import { getCurrentUser } from './services/authService';
+import PostView from './pages/PostView';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -82,6 +86,10 @@ function App() {
             <Route 
               path="/edit-post/:id" 
               element={user ? <EditPost showAlert={showAlert} /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="/post/:id" 
+              element={user ? <PostView showAlert={showAlert} /> : <Navigate to="/login" />} 
             />
             <Route 
               path="/" 
