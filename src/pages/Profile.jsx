@@ -1,5 +1,12 @@
+
 import React, { useState } from 'react';
+import { User, Mail, Lock, Save } from 'lucide-react';
 import { updateProfile } from '../services/userService';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 const Profile = ({ user, setUser, showAlert }) => {
   const [formData, setFormData] = useState({
@@ -43,6 +50,7 @@ const Profile = ({ user, setUser, showAlert }) => {
       };
 
       if (formData.password) {
+        updateData.current_password = formData.current_password;
         updateData.current_password = formData.current_password;
         updateData.password = formData.password;
         updateData.password_confirmation = formData.password_confirmation;
